@@ -1,6 +1,6 @@
-# GitBuddy: A Simple Git GUI for Students, Developers, and End-Users
+# LazyGit: A Simple Git GUI for Students, Developers, and End-Users
 
-GitBuddy is a simple and easy-to-use Git GUI designed for students, developers, and end-users. It provides a basic interface for performing common Git operations such as add, commit, push, and pull.
+LazyGit is a simple and easy-to-use Git GUI designed for students, developers, and end-users. It provides a basic interface for performing common Git operations such as add, commit, push, and pull.
 It is particularly useful for beginners who are new to Git and want a visual tool to help them learn and use Git commands.
 
 ## Features
@@ -28,7 +28,7 @@ Contributions are welcome! Please submit a pull request with your changes.
 
 ## Author
 
-[Your Name or GitHub Username]
+SAI SUMANTH
 
 ```xml
 
