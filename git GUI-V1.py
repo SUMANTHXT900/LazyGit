@@ -85,4 +85,4 @@ output_text.pack(pady=5)
 
 root.mainloop()
 
-#checking the pull is working or not 
+#yea the pull is working and the push is working too.
