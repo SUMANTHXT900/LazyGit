@@ -1,12 +1,25 @@
 import tkinter as tk
-from tkinter import messagebox, scrolledtext
+from tkinter import messagebox, scrolledtext, filedialog
 import subprocess
 import os
 
-# Change to your Git repository directory
-os.chdir(r"C:\Users\91924\Desktop\project\PROJECTS ON GIT HUB\LazyGit")
+# Global variable to store the selected directory
+repo_directory = ""
+
+def select_directory():
+    global repo_directory
+    selected_directory = filedialog.askdirectory(title="Select Git Repository Directory")
+    if selected_directory:
+        repo_directory = selected_directory
+        os.chdir(repo_directory)
+        directory_label.config(text=f"Selected Directory: {repo_directory}")
+        output_text.insert(tk.END, f"Changed working directory to: {repo_directory}\n")
+        output_text.see(tk.END)
 
 def run_git_command(command):
+    if not repo_directory:
+        messagebox.showwarning("Directory Not Selected", "Please select a Git repository directory first.")
+        return
     try:
         result = subprocess.run(command, capture_output=True, text=True, shell=True)
         output_text.insert(tk.END, result.stdout if result.stdout else result.stderr + "\n")
@@ -33,8 +46,19 @@ def git_pull():
 # GUI Setup
 root = tk.Tk()
 root.title("Simple Git GUI")
-root.geometry("400x300")
+root.geometry("500x400")
 
+# Directory Selection
+directory_frame = tk.Frame(root)
+directory_frame.pack(pady=5)
+
+select_dir_button = tk.Button(directory_frame, text="Select Directory", command=select_directory, width=15)
+select_dir_button.grid(row=0, column=0, padx=5)
+
+directory_label = tk.Label(directory_frame, text="No directory selected", width=50, anchor="w")
+directory_label.grid(row=0, column=1, padx=5)
+
+# Git Command Buttons
 frame = tk.Frame(root)
 frame.pack(pady=5)
 
@@ -50,11 +74,13 @@ git_push_button.grid(row=0, column=2, padx=5)
 git_pull_button = tk.Button(frame, text="Pull", command=git_pull, width=10)
 git_pull_button.grid(row=0, column=3, padx=5)
 
+# Commit Message Entry
 commit_entry = tk.Entry(root, width=50)
 commit_entry.pack(pady=5)
 commit_entry.insert(0, "Enter commit message...")
 
-output_text = scrolledtext.ScrolledText(root, height=10, width=50)
+# Output Text Area
+output_text = scrolledtext.ScrolledText(root, height=15, width=60)
 output_text.pack(pady=5)
 
 root.mainloop()
