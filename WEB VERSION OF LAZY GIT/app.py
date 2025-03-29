@@ -51,8 +51,6 @@ def check_git_available():
     try:
         # Try to run git version command
         result = subprocess.run(['git', '--version'], 
-                               stdout=subprocess.PIPE, 
-                               stderr=subprocess.PIPE,
                                text=True,
                                capture_output=True)
         if result.returncode == 0:
