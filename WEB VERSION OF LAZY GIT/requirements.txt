@@ -1,0 +1,9 @@
+Flask==2.2.3
+Werkzeug==2.2.3
+Jinja2==3.1.2
+MarkupSafe==2.1.2
+itsdangerous==2.1.2
+gitpython==3.1.31
+flask-cors==3.0.10
+webbrowser==0.10.1
+pyinstaller==6.1.0 

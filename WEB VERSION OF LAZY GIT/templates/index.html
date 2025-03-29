@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LazyGit - Simple Git Interface</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Inline critical CSS to prevent FOUC */
+        body { opacity: 0; }
+        body.loaded { opacity: 1; transition: opacity 0.3s ease; }
+    </style>
+</head>
+<body class="dark-mode prevent-fouc">
+    <!-- Animated background -->
+    <div class="animated-bg" id="animated-bg"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-code-branch"></i>
+                <h1>LazyGit</h1>
+            </div>
+            <div class="theme-toggle">
+                <button id="theme-toggle-btn" class="btn btn-circle">
+                    <i class="fas fa-sun"></i>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="repository-section">
+                <h2><i class="fas fa-code-branch"></i> Repository Management</h2>
+                <div class="repository-controls">
+                    <select id="repository-dropdown">
+                        <option value="">Select a repository</option>
+                        {% for repo in repositories %}
+                            <option value="{{ repo }}" {% if repo == current_directory %}selected{% endif %}>{{ repo }}</option>
+                        {% endfor %}
+                    </select>
+                    <button id="add-repo-btn">
+                        <i class="fas fa-folder-plus"></i>
+                    </button>
+                    <button id="refresh-repos-btn">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="current-repo-info">
+                    <div class="info-label">Current Directory:</div>
+                    <div id="current-directory" class="info-value">{{ current_directory or 'No repository selected' }}</div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <i class="fas fa-code-branch"></i> Advanced Git Operations
+            </div>
+            
+            <div class="git-advanced-operations">
+                <button id="git-init-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-plus-circle"></i> <span>Initialize</span>
+                    <span class="tooltip">Initialize a new Git repository in the current directory</span>
+                </button>
+                <button id="git-branches-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-code-branch"></i> <span>Branches</span>
+                    <span class="tooltip">List all branches in the repository</span>
+                </button>
+                <button id="git-remotes-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-cloud"></i> <span>Remotes</span>
+                    <span class="tooltip">List all remote repositories</span>
+                </button>
+                <button id="git-new-branch-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-code-branch"></i> <span>New Branch</span>
+                    <span class="tooltip">Create a new branch from the current HEAD</span>
+                </button>
+                <button id="git-checkout-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-exchange-alt"></i> <span>Checkout</span>
+                    <span class="tooltip">Switch branches or restore working tree files</span>
+                </button>
+                <button id="git-add-remote-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-globe"></i> <span>Add Remote</span>
+                    <span class="tooltip">Add a new remote repository</span>
+                </button>
+            </div>
+
+            <div class="section-header">
+                <i class="fas fa-tools"></i> Basic Operations
+            </div>
+            
+            <div class="git-operations">
+                <button id="git-status-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-info-circle"></i> <span>Status</span>
+                    <span class="tooltip">Show the working tree status: modified, staged and untracked files</span>
+                </button>
+                <button id="git-add-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-plus"></i> <span>Stage</span>
+                    <span class="tooltip">Stage all changes in the working directory for the next commit</span>
+                </button>
+                <button id="git-commit-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-check"></i> <span>Commit</span>
+                    <span class="tooltip">Record staged changes to the repository with a message</span>
+                </button>
+                <button id="git-push-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-upload"></i> <span>Push</span>
+                    <span class="tooltip">Upload local commits to the remote repository</span>
+                </button>
+                <button id="git-pull-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-download"></i> <span>Pull</span>
+                    <span class="tooltip">Fetch from and integrate with remote repository</span>
+                </button>
+                <button id="git-log-btn" {% if not current_directory %}disabled{% endif %}>
+                    <i class="fas fa-history"></i> <span>Log</span>
+                    <span class="tooltip">Show commit history with details</span>
+                </button>
+            </div>
+            
+            <div class="terminal-section">
+                <div class="terminal-header">
+                    <h3><i class="fas fa-terminal"></i> Terminal Output</h3>
+                    <button id="clear-output-btn" class="btn-icon">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div id="terminal-output" class="terminal-output">
+                    <div class="log-entry">
+                        <span class="timestamp">{{ current_time }}</span>
+                        <span class="log-icon info"><i class="fas fa-info-circle"></i></span>
+                        <span class="message info">Welcome to LazyGit! Select a repository to get started.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="commit-history-section" class="commit-history-section hidden">
+                <div class="section-header">
+                    <h3>Commit History</h3>
+                    <button id="close-history-btn" class="btn btn-small">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="commit-list" class="commit-list">
+                    <!-- Commit items will be added here dynamically -->
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Simple Git interface for easy repository management</p>
+            <div class="shutdown-container">
+                <div class="radio-wrapper">
+                    <input class="input" name="btn" id="shutdown-btn" type="radio">
+                    <div class="btn">
+                        <span aria-hidden="">_</span>Exit
+                        <span class="btn__glitch" aria-hidden="">_Exit🔌</span>
+                        <label class="number">X</label>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for commit messages -->
+    <div id="commit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Commit Changes</h3>
+                <button class="modal-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="commit-message">Commit Message:</label>
+                    <textarea id="commit-message" placeholder="Enter a descriptive commit message"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="submit-commit-btn" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Commit
+                </button>
+                <button class="modal-cancel-btn btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for branch creation -->
+    <div id="new-branch-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Branch</h3>
+                <button class="modal-close-btn" data-target="new-branch-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="branch-name">Branch Name:</label>
+                    <input type="text" id="branch-name" class="form-control" placeholder="Enter new branch name">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="create-branch-btn" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Create Branch
+                </button>
+                <button class="modal-cancel-btn btn btn-secondary" data-target="new-branch-modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for branch checkout -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Checkout Branch</h3>
+                <button class="modal-close-btn" data-target="checkout-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="branch-select">Select Branch:</label>
+                    <select id="branch-select" class="form-control">
+                        <option value="">-- Select a branch --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="checkout-branch-btn" class="btn btn-primary">
+                    <i class="fas fa-exchange-alt"></i> Checkout
+                </button>
+                <button class="modal-cancel-btn btn btn-secondary" data-target="checkout-modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for add remote -->
+    <div id="add-remote-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Remote Repository</h3>
+                <button class="modal-close-btn" data-target="add-remote-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="remote-name">Remote Name:</label>
+                    <input type="text" id="remote-name" class="form-control" placeholder="e.g. origin">
+                </div>
+                <div class="form-group">
+                    <label for="remote-url">Remote URL:</label>
+                    <input type="text" id="remote-url" class="form-control" placeholder="e.g. https://github.com/username/repo.git">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="add-remote-confirm-btn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Remote
+                </button>
+                <button class="modal-cancel-btn btn btn-secondary" data-target="add-remote-modal">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-message">Processing operation...</div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Prevent FOUC (Flash of Unstyled Content)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for all resources to load
+            window.addEventListener('load', function() {
+                document.body.classList.add('loaded');
+                document.body.classList.add('ready');
+                setTimeout(function() {
+                    document.body.classList.remove('prevent-fouc');
+                }, 50);
+                
+                // Create background elements
+                createBackgroundEffects();
+            });
+        });
+        
+        // Create animated background elements
+        function createBackgroundEffects() {
+            const bg = document.getElementById('animated-bg');
+            
+            // Create particles
+            const particleCount = 10;
+            for (let i = 0; i < particleCount; i++) {
+                const size = Math.random() * 150 + 50; // 50-200px
+                const particle = document.createElement('div');
+                particle.className = 'bg-particle';
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Randomize animation
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particle.style.animationDuration = `${15 + Math.random() * 15}s`;
+                particle.style.opacity = `${0.03 + Math.random() * 0.05}`;
+                
+                bg.appendChild(particle);
+            }
+            
+            // Create 3D cubes
+            const cubeCount = 3;
+            for (let i = 0; i < cubeCount; i++) {
+                createCube(bg, i);
+            }
+        }
+        
+        function createCube(parent, index) {
+            const cube = document.createElement('div');
+            cube.className = 'bg-cube';
+            
+            // Position cube randomly
+            const size = 150 + Math.random() * 100;
+            cube.style.width = `${size}px`;
+            cube.style.height = `${size}px`;
+            cube.style.left = `${Math.random() * 75}%`;
+            cube.style.top = `${Math.random() * 75}%`;
+            
+            // Random rotation and animation
+            cube.style.animationDelay = `${index * 3}s`;
+            cube.style.animationDuration = `${20 + Math.random() * 10}s`;
+            
+            // Create cube faces
+            const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
+            faces.forEach(face => {
+                const faceDiv = document.createElement('div');
+                faceDiv.className = face;
+                cube.appendChild(faceDiv);
+            });
+            
+            parent.appendChild(cube);
+        }
+    </script>
+</body>
+</html> 

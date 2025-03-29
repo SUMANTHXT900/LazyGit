@@ -1,0 +1,56 @@
+{
+  "name": "lazygit-electron",
+  "version": "1.0.0",
+  "description": "LazyGit - A simple Git GUI built with Electron and Python",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "keywords": [
+    "git",
+    "electron",
+    "python",
+    "flask"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.lazygit.app",
+    "productName": "LazyGit",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "loading.html",
+      "package.json",
+      "python/**/*",
+      "!python/__pycache__/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "extraResources": [
+      {
+        "from": "python",
+        "to": "python",
+        "filter": [
+          "**/*",
+          "!__pycache__/**/*"
+        ]
+      }
+    ]
+  }
+} 

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LazyGit - Select Repository</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1e1e2e;
+            color: #e0def4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .directory-picker-container {
+            background-color: #232136;
+            border-radius: 8px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .logo-section {
+            margin-bottom: 2rem;
+        }
+
+        .logo-section h1 {
+            margin: 0;
+            color: #c4a7e7;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-section h1 i {
+            margin-right: 10px;
+            color: #ebbcba;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            background-color: rgba(0, 0, 0, 0.2);
+            color: #e0def4;
+            font-size: 16px;
+            box-sizing: border-box;
+            margin-top: 8px;
+        }
+
+        .help-text {
+            margin-top: 8px;
+            color: #908caa;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #c4a7e7;
+            color: #232136;
+        }
+
+        .btn-primary:hover {
+            background-color: #b18cdd;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #e0def4;
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .repository-saved-list {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+        .repository-saved-list h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #c4a7e7;
+        }
+    </style>
+</head>
+<body>
+    <div class="directory-picker-container">
+        <div class="logo-section">
+            <h1><i class="fas fa-code-branch"></i> LazyGit</h1>
+        </div>
+        
+        {% if repositories %}
+        <div class="repository-saved-list">
+            <h3><i class="fas fa-bookmark"></i> Saved Repositories</h3>
+            <select id="repository-dropdown" class="form-control">
+                <option value="">-- Select a saved repository --</option>
+                {% for repo in repositories %}
+                <option value="{{ repo }}">{{ repo }}</option>
+                {% endfor %}
+            </select>
+            <p class="help-text">Select a previously used repository from the dropdown, or enter a new path below.</p>
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="directory-path">Path to Git Repository:</label>
+            <input type="text" id="directory-path" class="form-control" placeholder="C:\path\to\your\repository" />
+            <p class="help-text">Enter the full path to your Git repository folder (e.g., C:\projects\my-git-repo)</p>
+        </div>
+        
+        <div class="actions">
+            <button id="select-btn" class="btn btn-primary">Select Repository</button>
+            <button id="cancel-btn" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const selectBtn = document.getElementById('select-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const directoryPathInput = document.getElementById('directory-path');
+            const repoDropdown = document.getElementById('repository-dropdown');
+            
+            // Handle dropdown change
+            if (repoDropdown) {
+                repoDropdown.addEventListener('change', () => {
+                    if (repoDropdown.value) {
+                        directoryPathInput.value = repoDropdown.value;
+                    }
+                });
+            }
+
+            // Handle select button click
+            selectBtn.addEventListener('click', () => {
+                const directory = directoryPathInput.value.trim();
+                if (directory) {
+                    // Submit the directory to server
+                    fetch('/set-directory', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ directory: directory }),
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || 'Failed to set directory');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Go back to main page on success
+                        window.location.href = '/';
+                    })
+                    .catch(error => {
+                        alert(`Error: ${error.message}`);
+                    });
+                } else {
+                    alert('Please enter a valid directory path');
+                }
+            });
+
+            // Handle cancel button click
+            cancelBtn.addEventListener('click', () => {
+                window.location.href = '/';
+            });
+            
+            // Handle Enter key press
+            directoryPathInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    selectBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
