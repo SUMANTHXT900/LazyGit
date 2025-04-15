@@ -1,28 +1,70 @@
-# LazyGit: A Simple Git GUI
+# Lazy Git - Modern Git GUI
 
-LazyGit is an easy-to-use Git GUI designed for students, developers, and end-users. It simplifies common Git operations like add, commit, push, and pull, making it ideal for beginners.
+A sleek, modern Git GUI application built with Tkinter and ttkbootstrap, featuring glassmorphism effects and modern UI/UX principles.
 
 ## Features
 
-- User-friendly interface for basic Git operations
-- Commit message entry with warnings for empty messages
-- Display of Git command results
-- Lightweight design
+### Modern UI/UX Design
+- **Glassmorphism Effects**: Semi-transparent, frosted glass-like panels with blur effects
+- **Light/Dark Mode**: Toggle between light and dark themes with a single click
+- **Interactive Elements**: Hover animations, button press effects, and smooth transitions
+- **Custom Widgets**: Beautifully styled buttons, input fields, and panels
+
+### Git Functionality
+- Repository directory selection
+- Basic Git operations (add, commit, push, pull)
+- Git status and log viewing
+- Real-time command output display
+
+### Advanced Effects
+- Loading animations with progress bars
+- Smooth transitions and fade effects
+- Status bar with real-time updates
+- Placeholder text for input fields
+
+## Requirements
+- Python 3.x
+- ttkbootstrap (`pip install ttkbootstrap`)
+- Pillow (`pip install pillow`)
 
 ## Usage
+```bash
+python "git GUI-V1.py"
+```
 
-1. Install Python and Tkinter.
-2. Run the `git GUI-V1.py` script.
-3. Enter your commit message.
-4. Click the buttons to perform Git operations.
+## Screenshot
+(Screenshots will appear here once available)
+
+## Implementation Details
+
+### Glassmorphism Effect
+The glassmorphism effect is achieved using the PIL library to create blurred backgrounds with semi-transparency. Each glassmorphic panel uses a custom frame class that:
+1. Creates a canvas as background
+2. Generates a semi-transparent background image
+3. Applies a Gaussian blur filter
+4. Updates dynamically when resized or theme changes
+
+### Interactive Elements
+Buttons feature:
+- Scale animations on hover
+- Color changes based on theme
+- Press/release animations
+- Custom styling for different action types
+
+### Threading for Performance
+Git commands run in separate threads to:
+- Prevent UI freezing during operations
+- Allow for loading animations
+- Update UI elements after completion
+
+### Theme System
+The application supports both light and dark themes:
+- Uses ttkbootstrap themes ("darkly" and "flatly")
+- Adapts glassmorphism effects to match theme
+- Saves preferences across sessions
 
 ## License
-
-Licensed under the [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0). See the `LICENSE` file for details.
-
-## Contributing
-
-Contributions are welcome! Please submit a pull request.
+MIT License
 
 ## Author
 
